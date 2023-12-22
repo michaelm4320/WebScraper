@@ -13,7 +13,14 @@ public class WebScraper {
             // Select all 'a' tags within 'li' elements and print their 'href' attributes
             Elements links = document.select("tbody li a");
             for (Element link : links) {
-                System.out.println(link.attr("abs:href")); // 'abs:href' gets the absolute URL
+                String linkUrl = link.attr("abs:href");
+                Document individualPage = Jsoup.connect(linkUrl).get();
+
+                String title = individualPage.select("h1").first().text();
+                Element content = individualPage.getElementById("bodyContent");
+
+                // Call writeToFile from your fileWriting class
+                fileWriting.writeToFile(title, content.text());
             }
         } catch (Exception e) {
             e.printStackTrace();
