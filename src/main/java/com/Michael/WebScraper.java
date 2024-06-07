@@ -6,6 +6,7 @@ import org.jsoup.select.Elements;
 
 public class WebScraper {
     public static void main(String[] args) {
+        int count = 0;
         try {
             String url = "https://essentialsdocs.fandom.com/wiki/Essentials_Docs_Wiki";
             Document document = Jsoup.connect(url)
@@ -15,6 +16,7 @@ public class WebScraper {
 
             Elements links = document.select("tbody li a");
             for (Element link : links) {
+                count++;
                 String linkUrl = link.attr("abs:href");
                 try {
                     Document individualPage = Jsoup.connect(linkUrl)
@@ -34,5 +36,6 @@ public class WebScraper {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println(count);
     }
 }
