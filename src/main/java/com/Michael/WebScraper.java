@@ -5,7 +5,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class WebScraper {
-    public static void main(String[] args) {
+    public static void scraper() {
         int count = 0;
         try {
             String url = "https://essentialsdocs.fandom.com/wiki/Essentials_Docs_Wiki";

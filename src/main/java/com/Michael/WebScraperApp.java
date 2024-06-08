@@ -20,6 +20,8 @@ public class WebScraperApp extends Application {
         //Convert WebScraper file from main to regular public class, create function to run entire code
         //then call here to see if it works.
 
+        button.setOnAction(e -> WebScraper.scraper());
+
         //button.setOnAction(e -> TestFile.messageTest());
         //button.setOnAction(e -> textArea.setText("Button Clicked!"));
 
