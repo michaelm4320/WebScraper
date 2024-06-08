@@ -13,8 +13,7 @@ public class fileWriting {
             Path path = Paths.get("C:\\Users\\Michael\\Documents\\Java Projects\\" +
                     "WebScraper\\WebScraper\\src\\main\\PokemonDocs\\" + fileName + ".txt");
             Files.write(path, text.getBytes());
-        } catch (
-        IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
