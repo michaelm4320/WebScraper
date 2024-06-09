@@ -28,6 +28,9 @@ public class WebScraperApp extends Application {
         TextArea textAreaTwo = new TextArea();
         textAreaTwo.setEditable(false);
 
+        textAreaTwo.setPrefHeight(400);
+        textAreaTwo.setPrefWidth(600);
+
         Button btnLoad = new Button("Load Folder");
         btnLoad.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -51,17 +54,20 @@ public class WebScraperApp extends Application {
 
         button.setOnAction(e -> WebScraper.scraper());
 
-        HBox hbox = new HBox(10);
-        hbox.setPadding(new Insets(15, 12, 15, 12));
-        hbox.setStyle("-fx-background-color: #336699;");
-        hbox.getChildren().addAll(button, btnLoad);
+        HBox hBox = new HBox(10);
+        hBox.setPadding(new Insets(15, 12, 15, 12));
+        hBox.setStyle("-fx-background-color: #336699;");
+        hBox.getChildren().addAll(button, btnLoad);
 
+        HBox hBoxTwo = new HBox(10);
+        hBoxTwo.setPadding(new Insets(15, 12, 15, 12));
+        hBoxTwo.getChildren().addAll(textArea, textAreaTwo);
 
-        VBox layout = new VBox(10);
-        layout.setPadding(new Insets(10));
-        layout.getChildren().addAll(hbox, textArea, textAreaTwo);
+        VBox vBox = new VBox(10);
+        vBox.setPadding(new Insets(10));
+        vBox.getChildren().addAll(hBox, hBoxTwo);
 
-        Scene scene = new Scene(layout, 400, 300);
+        Scene scene = new Scene(vBox, 400, 300);
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Basic JavaFX App");
