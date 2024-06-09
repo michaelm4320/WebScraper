@@ -25,6 +25,9 @@ public class WebScraperApp extends Application {
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
 
+        TextArea textAreaTwo = new TextArea();
+        textAreaTwo.setEditable(false);
+
         Button btnLoad = new Button("Load Folder");
         btnLoad.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -56,7 +59,7 @@ public class WebScraperApp extends Application {
 
         VBox layout = new VBox(10);
         layout.setPadding(new Insets(10));
-        layout.getChildren().addAll(hbox, textArea);
+        layout.getChildren().addAll(hbox, textArea, textAreaTwo);
 
         Scene scene = new Scene(layout, 400, 300);
 
