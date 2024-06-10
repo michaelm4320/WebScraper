@@ -51,14 +51,16 @@ public class WebScraperApp extends Application {
             }
         });
 
-        Button button = new Button("Scrape Docs");
+        Button btnSave = new Button("Save");
 
+
+        Button button = new Button("Scrape Docs");
         button.setOnAction(e -> WebScraper.scraper());
 
         HBox hBox = new HBox(10);
         hBox.setPadding(new Insets(15, 12, 15, 12));
         hBox.setStyle("-fx-background-color: #336699;");
-        hBox.getChildren().addAll(button, btnLoad);
+        hBox.getChildren().addAll(button, btnLoad, btnSave);
 
         HBox hBoxTwo = new HBox(10);
         hBoxTwo.setPadding(new Insets(15, 12, 15, 12));
@@ -86,6 +88,26 @@ public class WebScraperApp extends Application {
                         alert.showAndWait();
                     }
                 }
+            }
+        });
+
+        btnSave.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                String selectedFileName = getSelectedFileName(textArea);
+                File selectedFile = new File(directoryPath, selectedFileName);
+                if (selectedFile.isFile()) {
+                    try {
+                        String content = textAreaTwo.getText();
+                        Files.write(selectedFile.toPath(), content.getBytes());
+                    } catch (IOException ex) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setHeaderText("Could not read file");
+                        alert.setContentText("An error occurred while reading the file.");
+                        alert.showAndWait();
+                    }
+                }
+
             }
         });
 
