@@ -8,12 +8,15 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class WebScraperApp extends Application {
     public static void main(String[] args) {
@@ -24,7 +27,6 @@ public class WebScraperApp extends Application {
     public void start(Stage primaryStage) {
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
-
         TextArea textAreaTwo = new TextArea();
         textAreaTwo.setEditable(false);
 
@@ -51,7 +53,6 @@ public class WebScraperApp extends Application {
 
         Button button = new Button("Scrape Docs");
 
-
         button.setOnAction(e -> WebScraper.scraper());
 
         HBox hBox = new HBox(10);
@@ -67,14 +68,36 @@ public class WebScraperApp extends Application {
         vBox.setPadding(new Insets(10));
         vBox.getChildren().addAll(hBox, hBoxTwo);
 
-        Scene scene = new Scene(vBox, 400, 300);
+        Scene scene = new Scene(vBox, 800, 600);
+
+
+        textArea.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            String selectedFileName = getSelectedFileName(textArea);
+            if (selectedFileName != null) {
+                File selectedFile = new File(directoryPath, selectedFileName);
+                if (selectedFile.isFile()) {
+                    try {
+                        String content = new String(Files.readAllBytes(selectedFile.toPath()));
+                        textAreaTwo.setText(content);
+                    } catch (IOException ex) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setHeaderText("Could not read file");
+                        alert.setContentText("An error occurred while reading the file.");
+                        alert.showAndWait();
+                    }
+                }
+            }
+        });
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Basic JavaFX App");
         primaryStage.show();
     }
 
+    private String directoryPath;
+
     private void displayDirectoryContents(File directory, TextArea textArea) {
+        directoryPath = directory.getAbsolutePath();
         StringBuilder content = new StringBuilder();
         for (File file : directory.listFiles()) {
             if (file.isDirectory()) {
@@ -84,5 +107,18 @@ public class WebScraperApp extends Application {
             }
         }
         textArea.setText(content.toString());
+    }
+
+    private String getSelectedFileName(TextArea textArea) {
+        int caretPosition = textArea.getCaretPosition();
+        String[] lines = textArea.getText().split("\n");
+        int cumulativeLength = 0;
+        for (String line : lines) {
+            cumulativeLength += line.length() + 1;
+            if (caretPosition <= cumulativeLength) {
+                return line.replace("File: ", "").trim();
+            }
+        }
+        return null;
     }
 }
