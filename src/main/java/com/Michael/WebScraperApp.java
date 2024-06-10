@@ -28,7 +28,7 @@ public class WebScraperApp extends Application {
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
         TextArea textAreaTwo = new TextArea();
-        textAreaTwo.setEditable(false);
+        textAreaTwo.setEditable(true);
 
         textAreaTwo.setPrefHeight(400);
         textAreaTwo.setPrefWidth(600);
