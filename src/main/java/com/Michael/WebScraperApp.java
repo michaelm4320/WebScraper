@@ -12,6 +12,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -51,8 +52,9 @@ public class WebScraperApp extends Application {
             }
         });
 
+        Button btnCreate = new Button("Create");
         Button btnSave = new Button("Save");
-
+        Button btnDelete = new Button("Delete");
 
         Button button = new Button("Scrape Docs");
         button.setOnAction(e -> WebScraper.scraper());
@@ -60,7 +62,7 @@ public class WebScraperApp extends Application {
         HBox hBox = new HBox(10);
         hBox.setPadding(new Insets(15, 12, 15, 12));
         hBox.setStyle("-fx-background-color: #336699;");
-        hBox.getChildren().addAll(button, btnLoad, btnSave);
+        hBox.getChildren().addAll(button, btnLoad, btnCreate, btnSave, btnDelete);
 
         HBox hBoxTwo = new HBox(10);
         hBoxTwo.setPadding(new Insets(15, 12, 15, 12));
@@ -71,7 +73,6 @@ public class WebScraperApp extends Application {
         vBox.getChildren().addAll(hBox, hBoxTwo);
 
         Scene scene = new Scene(vBox, 800, 600);
-
 
         textArea.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
             String selectedFileName = getSelectedFileName(textArea);
@@ -85,6 +86,39 @@ public class WebScraperApp extends Application {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setHeaderText("Could not read file");
                         alert.setContentText("An error occurred while reading the file.");
+                        alert.showAndWait();
+                    }
+                }
+            }
+        });
+
+        btnCreate.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Create New File");
+                fileChooser.setInitialFileName("newfile.txt");
+
+                fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+
+                File file = fileChooser.showSaveDialog(primaryStage);
+                if (file != null) {
+                    try {
+                        if (file.createNewFile()) {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setHeaderText("File Created");
+                            alert.setContentText("The file " + file.getName() + " was created successfully.");
+                            alert.showAndWait();
+                        } else {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setHeaderText("File Exists");
+                            alert.setContentText("The file " + file.getName() + " already exists.");
+                            alert.showAndWait();
+                        }
+                    } catch (IOException ex) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setHeaderText("Could not create file");
+                        alert.setContentText("An error occurred while creating the file.");
                         alert.showAndWait();
                     }
                 }
@@ -107,7 +141,17 @@ public class WebScraperApp extends Application {
                         alert.showAndWait();
                     }
                 }
+            }
+        });
 
+        btnDelete.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                String selectedFileName = getSelectedFileName(textArea);
+                File selectedFile = new File(directoryPath, selectedFileName);
+                selectedFile.delete();
+                //System.out.println(selectedFile.getParentFile());
+                displayDirectoryContents(selectedFile.getParentFile(), textArea);
             }
         });
 
