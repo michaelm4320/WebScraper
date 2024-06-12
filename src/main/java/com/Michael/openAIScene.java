@@ -4,6 +4,8 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -44,17 +46,14 @@ public class openAIScene {
         rootPane.setTop(hBox);
         rootPane.setLeft(vBox);
 
-        //https://stackoverflow.com/questions/27982895/how-to-use-keyevent-in-javafx-project
-
-        /*btnSend.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.ENTER) {
-                    System.out.println("Enter Pressed");
-                }
+        sendMessageArea.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                String userInput = sendMessageArea.getText().trim();
+                sendMessageArea.clear();
+                textArea.appendText("You: " + userInput + "\n");
             }
-        });*/
-        //https://stackoverflow.com/questions/42512513/adding-event-listener-to-mainscene-in-javafx-using-fxml
+        });
+
     }
 
     public BorderPane getRootPane() {
