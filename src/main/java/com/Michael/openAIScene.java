@@ -28,7 +28,7 @@ public class openAIScene {
 
         Button btnFile = new Button("View Files");
         btnFile.setOnAction(e -> {
-            primaryStage.setScene(new Scene(app.getRootPane(), 800, 600));
+            primaryStage.setScene(new Scene(app.createMainLayout(primaryStage), 800, 600));
         });
 
         HBox hBox = new HBox(10);
