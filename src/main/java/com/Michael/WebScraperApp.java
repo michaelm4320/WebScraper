@@ -20,12 +20,26 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class WebScraperApp extends Application {
+    private VBox vBox; // Class-level variable
+
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) {
+        vBox = createMainLayout(primaryStage);
+
+        Scene scene = new Scene(vBox, 800, 600);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Basic JavaFX App");
+        primaryStage.show();
+    }
+
+    private String directoryPath;
+
+    public VBox createMainLayout(Stage primaryStage) {
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
         TextArea textAreaTwo = new TextArea();
@@ -52,6 +66,12 @@ public class WebScraperApp extends Application {
             }
         });
 
+        Button chatScene = new Button("ChatGPT");
+        chatScene.setOnAction(e -> {
+            openAIScene scene = new openAIScene(primaryStage, this);
+            primaryStage.setScene(new Scene(scene.getRootPane(), 800, 600));
+        });
+
         Button btnCreate = new Button("Create");
         Button btnSave = new Button("Save");
         Button btnDelete = new Button("Delete");
@@ -62,7 +82,7 @@ public class WebScraperApp extends Application {
         HBox hBox = new HBox(10);
         hBox.setPadding(new Insets(15, 12, 15, 12));
         hBox.setStyle("-fx-background-color: #336699;");
-        hBox.getChildren().addAll(button, btnLoad, btnCreate, btnSave, btnDelete);
+        hBox.getChildren().addAll(button, btnLoad, btnCreate, btnSave, btnDelete, chatScene);
 
         HBox hBoxTwo = new HBox(10);
         hBoxTwo.setPadding(new Insets(15, 12, 15, 12));
@@ -71,8 +91,6 @@ public class WebScraperApp extends Application {
         VBox vBox = new VBox(10);
         vBox.setPadding(new Insets(10));
         vBox.getChildren().addAll(hBox, hBoxTwo);
-
-        Scene scene = new Scene(vBox, 800, 600);
 
         textArea.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
             String selectedFileName = getSelectedFileName(textArea);
@@ -150,17 +168,12 @@ public class WebScraperApp extends Application {
                 String selectedFileName = getSelectedFileName(textArea);
                 File selectedFile = new File(directoryPath, selectedFileName);
                 selectedFile.delete();
-                //System.out.println(selectedFile.getParentFile());
                 displayDirectoryContents(selectedFile.getParentFile(), textArea);
             }
         });
 
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("Basic JavaFX App");
-        primaryStage.show();
+        return vBox;
     }
-
-    private String directoryPath;
 
     private void displayDirectoryContents(File directory, TextArea textArea) {
         directoryPath = directory.getAbsolutePath();
@@ -186,5 +199,9 @@ public class WebScraperApp extends Application {
             }
         }
         return null;
+    }
+
+    public VBox getRootPane() {
+        return createMainLayout(new Stage());
     }
 }
