@@ -3,6 +3,7 @@ This project is a Java-based web scraper that extracts data from the Essentials 
 
 ![image](https://github.com/michaelm4320/WebScraper/assets/62119636/4debc69c-1cde-4eec-8778-bfdc80219afe)
 
+Here is the Web Scraper GUI using JavaFX. The application consists of two scenes with 6 functional buttons.
 ![img.png](img.png)
 
 ![img_1.png](img_1.png)
