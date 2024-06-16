@@ -1,5 +1,6 @@
 package com.Michael;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -10,6 +11,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class openAIScene {
     private final BorderPane rootPane;
@@ -34,10 +38,14 @@ public class openAIScene {
             primaryStage.setScene(new Scene(app.createMainLayout(primaryStage), 800, 600));
         });
 
+        // New button for fetching data using OkHttp
+        Button fetchButton = new Button("Fetch Data");
+        fetchButton.setOnAction(e -> fetchData(textArea));
+
         HBox hBox = new HBox(10);
         hBox.setPadding(new Insets(15, 12, 15, 12));
         hBox.setStyle("-fx-background-color: #336699;");
-        hBox.getChildren().addAll(btnFile, btnSend);
+        hBox.getChildren().addAll(btnFile, btnSend, fetchButton);
 
         VBox vBox = new VBox(10);
         vBox.setPadding(new Insets(10));
@@ -58,5 +66,27 @@ public class openAIScene {
 
     public BorderPane getRootPane() {
         return rootPane;
+    }
+
+    private void fetchData(TextArea textArea) {
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url("https://api.github.com")
+                .build();
+
+        new Thread(() -> {
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    String responseData = response.body().string();
+                    Platform.runLater(() -> textArea.setText(responseData));
+                } else {
+                    Platform.runLater(() -> textArea.setText("Request failed: " + response.code()));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> textArea.setText("An error occurred: " + e.getMessage()));
+            }
+        }).start();
     }
 }
