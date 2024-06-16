@@ -1,5 +1,7 @@
 package com.Michael;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -11,9 +13,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
+
+import java.io.IOException;
+
+// Other imports
 
 public class openAIScene {
     private final BorderPane rootPane;
@@ -38,14 +42,10 @@ public class openAIScene {
             primaryStage.setScene(new Scene(app.createMainLayout(primaryStage), 800, 600));
         });
 
-        // New button for fetching data using OkHttp
-        Button fetchButton = new Button("Fetch Data");
-        fetchButton.setOnAction(e -> fetchData(textArea));
-
         HBox hBox = new HBox(10);
         hBox.setPadding(new Insets(15, 12, 15, 12));
         hBox.setStyle("-fx-background-color: #336699;");
-        hBox.getChildren().addAll(btnFile, btnSend, fetchButton);
+        hBox.getChildren().addAll(btnFile, btnSend);
 
         VBox vBox = new VBox(10);
         vBox.setPadding(new Insets(10));
@@ -56,37 +56,72 @@ public class openAIScene {
 
         sendMessageArea.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER) {
-                String userInput = sendMessageArea.getText().trim();
-                sendMessageArea.clear();
-                textArea.appendText("You: " + userInput + "\n");
+                sendMessage(sendMessageArea, textArea);
             }
         });
 
+        btnSend.setOnAction(e -> sendMessage(sendMessageArea, textArea));
+    }
+
+    private void sendMessage(TextArea sendMessageArea, TextArea textArea) {
+        String userInput = sendMessageArea.getText().trim();
+        if (userInput.isEmpty()) {
+            return;
+        }
+        sendMessageArea.clear();
+        textArea.appendText("You: " + userInput + "\n");
+
+        String apiKey = System.getenv("OPENAI_API_KEY");
+        if (apiKey == null || apiKey.isEmpty()) {
+            textArea.appendText("Error: API key not set\n");
+            return;
+        }
+
+        OkHttpClient client = new OkHttpClient();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String url = "https://api.openai.com/v1/chat/completions";
+        String json = "{\n" +
+                "  \"model\": \"gpt-3.5-turbo\",\n" +
+                "  \"messages\": [{\"role\": \"user\", \"content\": \"" + userInput + "\"}]\n" +
+                "}";
+
+        RequestBody body = RequestBody.create(
+                json, MediaType.parse("application/json"));
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Platform.runLater(() -> textArea.appendText("Failed to fetch response: " + e.getMessage() + "\n"));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    Platform.runLater(() -> {
+                        try {
+                            textArea.appendText("Failed to fetch response: \nResponse Code: " + response.code() + "\nResponse Body: " + response.body().string() + "\n");
+                        } catch (IOException e) {
+                            textArea.appendText("Failed to fetch response: " + e.getMessage() + "\n");
+                        }
+                    });
+                } else {
+                    String responseBody = response.body().string();
+                    JsonNode jsonNode = objectMapper.readTree(responseBody);
+                    String assistantMessage = jsonNode.get("choices").get(0).get("message").get("content").asText();
+                    Platform.runLater(() -> textArea.appendText("AI: " + assistantMessage + "\n"));
+                }
+            }
+        });
     }
 
     public BorderPane getRootPane() {
         return rootPane;
-    }
-
-    private void fetchData(TextArea textArea) {
-        OkHttpClient client = new OkHttpClient();
-
-        Request request = new Request.Builder()
-                .url("https://api.github.com")
-                .build();
-
-        new Thread(() -> {
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful()) {
-                    String responseData = response.body().string();
-                    Platform.runLater(() -> textArea.setText(responseData));
-                } else {
-                    Platform.runLater(() -> textArea.setText("Request failed: " + response.code()));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                Platform.runLater(() -> textArea.setText("An error occurred: " + e.getMessage()));
-            }
-        }).start();
     }
 }
