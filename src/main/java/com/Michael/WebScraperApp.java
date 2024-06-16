@@ -204,4 +204,9 @@ public class WebScraperApp extends Application {
     public VBox getRootPane() {
         return createMainLayout(new Stage());
     }
+
+    public String getFileContent(File file) throws IOException {
+        return new String(Files.readAllBytes(file.toPath()));
+    }
+
 }

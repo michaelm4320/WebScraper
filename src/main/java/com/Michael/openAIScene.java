@@ -2,6 +2,7 @@ package com.Michael;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -12,17 +13,20 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import okhttp3.*;
 
+import java.io.File;
 import java.io.IOException;
-
-// Other imports
 
 public class openAIScene {
     private final BorderPane rootPane;
+    private final WebScraperApp app;
+    private File selectedFile;
 
     public openAIScene(Stage primaryStage, WebScraperApp app) {
+        this.app = app;
         rootPane = new BorderPane();
 
         TextArea textArea = new TextArea();
@@ -42,10 +46,13 @@ public class openAIScene {
             primaryStage.setScene(new Scene(app.createMainLayout(primaryStage), 800, 600));
         });
 
+        Button btnSelectFile = new Button("Select File");
+        btnSelectFile.setOnAction(e -> selectFile(primaryStage, textArea));
+
         HBox hBox = new HBox(10);
         hBox.setPadding(new Insets(15, 12, 15, 12));
         hBox.setStyle("-fx-background-color: #336699;");
-        hBox.getChildren().addAll(btnFile, btnSend);
+        hBox.getChildren().addAll(btnFile, btnSelectFile, btnSend);
 
         VBox vBox = new VBox(10);
         vBox.setPadding(new Insets(10));
@@ -63,9 +70,18 @@ public class openAIScene {
         btnSend.setOnAction(e -> sendMessage(sendMessageArea, textArea));
     }
 
+    private void selectFile(Stage primaryStage, TextArea textArea) {
+        FileChooser fileChooser = new FileChooser();
+        selectedFile = fileChooser.showOpenDialog(primaryStage);
+        if (selectedFile != null) {
+            textArea.appendText("Selected file: " + selectedFile.getAbsolutePath() + "\n");
+        }
+    }
+
     private void sendMessage(TextArea sendMessageArea, TextArea textArea) {
         String userInput = sendMessageArea.getText().trim();
-        if (userInput.isEmpty()) {
+        if (userInput.isEmpty() && selectedFile == null) {
+            textArea.appendText("Error: No input or file selected\n");
             return;
         }
         sendMessageArea.clear();
@@ -80,45 +96,66 @@ public class openAIScene {
         OkHttpClient client = new OkHttpClient();
         ObjectMapper objectMapper = new ObjectMapper();
 
-        String url = "https://api.openai.com/v1/chat/completions";
-        String json = "{\n" +
-                "  \"model\": \"gpt-3.5-turbo\",\n" +
-                "  \"messages\": [{\"role\": \"user\", \"content\": \"" + userInput + "\"}]\n" +
-                "}";
-
-        RequestBody body = RequestBody.create(
-                json, MediaType.parse("application/json"));
-
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .addHeader("Authorization", "Bearer " + apiKey)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Platform.runLater(() -> textArea.appendText("Failed to fetch response: " + e.getMessage() + "\n"));
+        String fileContent = "";
+        if (selectedFile != null) {
+            try {
+                fileContent = app.getFileContent(selectedFile);
+            } catch (IOException e) {
+                textArea.appendText("Error reading file: " + e.getMessage() + "\n");
+                return;
             }
+        }
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    Platform.runLater(() -> {
-                        try {
-                            textArea.appendText("Failed to fetch response: \nResponse Code: " + response.code() + "\nResponse Body: " + response.body().string() + "\n");
-                        } catch (IOException e) {
-                            textArea.appendText("Failed to fetch response: " + e.getMessage() + "\n");
-                        }
-                    });
-                } else {
-                    String responseBody = response.body().string();
-                    JsonNode jsonNode = objectMapper.readTree(responseBody);
-                    String assistantMessage = jsonNode.get("choices").get(0).get("message").get("content").asText();
-                    Platform.runLater(() -> textArea.appendText("AI: " + assistantMessage + "\n"));
+        String inputContent = userInput + "\n\n" + fileContent;
+
+        // Build JSON object using Jackson
+        ObjectNode messageNode = objectMapper.createObjectNode();
+        messageNode.put("role", "user");
+        messageNode.put("content", inputContent);
+
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.set("messages", objectMapper.createArrayNode().add(messageNode));
+
+        try {
+            String json = objectMapper.writeValueAsString(requestBody);
+
+            RequestBody body = RequestBody.create(
+                    json, MediaType.parse("application/json"));
+
+            Request request = new Request.Builder()
+                    .url("https://api.openai.com/v1/chat/completions")
+                    .post(body)
+                    .addHeader("Authorization", "Bearer " + apiKey)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Platform.runLater(() -> textArea.appendText("Failed to fetch response: " + e.getMessage() + "\n"));
                 }
-            }
-        });
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        Platform.runLater(() -> {
+                            try {
+                                textArea.appendText("Failed to fetch response: \nResponse Code: " + response.code() + "\nResponse Body: " + response.body().string() + "\n");
+                            } catch (IOException e) {
+                                textArea.appendText("Failed to fetch response: " + e.getMessage() + "\n");
+                            }
+                        });
+                    } else {
+                        String responseBody = response.body().string();
+                        JsonNode jsonNode = objectMapper.readTree(responseBody);
+                        String assistantMessage = jsonNode.get("choices").get(0).get("message").get("content").asText();
+                        Platform.runLater(() -> textArea.appendText("AI: " + assistantMessage + "\n"));
+                    }
+                }
+            });
+        } catch (IOException e) {
+            textArea.appendText("Error creating JSON: " + e.getMessage() + "\n");
+        }
     }
 
     public BorderPane getRootPane() {
