@@ -66,7 +66,7 @@ public class WebScraperApp extends Application {
             }
         });
 
-        Button chatScene = new Button("ChatGPT");
+        Button chatScene = new Button("OpenAI");
         chatScene.setOnAction(e -> {
             openAIScene scene = new openAIScene(primaryStage, this);
             primaryStage.setScene(new Scene(scene.getRootPane(), 800, 600));
