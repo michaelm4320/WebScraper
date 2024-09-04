@@ -10,9 +10,13 @@ based on the contents of the selected text files.
 # Features
 
 Load Local Directory: Users can load a directory from their local file system and view its contents.
+
 View and Edit Files: Users can view the contents of selected text files and edit them within the application.
+
 AI Integration: Utilizes OpenAI's GPT-3.5-turbo model to generate responses based on the content of the loaded text files.
+
 File Operations: Create, save, and delete files directly from the application interface.
+
 Web Scraping: Scrapes from a Pokemon Documentation Wiki page and saves data into text files.
 
 
@@ -21,7 +25,11 @@ Web Scraping: Scrapes from a Pokemon Documentation Wiki page and saves data into
 # Technologies Used
 
 JavaFX: For building the graphical user interface.
+
 Maven: For project management and dependency handling.
+
 OkHttp: For making HTTP requests to the OpenAI API.
+
 OpenAI API: For AI-based text processing and generation.
+
 Jsoup: For scraping contents from the wiki pages.
